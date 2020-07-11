@@ -64,7 +64,7 @@ func main() {
 
 	res, resErr := http.Get(url)
 	if resErr != nil {
-		log.Warnf("Failed to Get API: %v", resErr)
+		log.Fatalf("Failed to Get API: %v", resErr)
 	}
 
 	// レスポンスを取得
