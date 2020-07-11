@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
 )
 
+// TODO 構造体はファイルを分ける
 type WeatherData struct {
 	Coord struct {
 		Lon float64 `json:"lon"`
@@ -52,20 +53,34 @@ type WeatherData struct {
 	Cod      int    `json:"cod"`
 }
 
+func init() {
+	// Info以上のレベルを出力する設定
+	log.SetLevel(log.InfoLevel)
+}
+
 func main() {
+	// TODO URLは定数にしたい
 	url := "https://api.openweathermap.org/data/2.5/weather?id=1850144&appid=" + os.Getenv("OPEN_WEATHER_API_KEY")
 
-	res, _ := http.Get(url)
+	res, resErr := http.Get(url)
+	if resErr != nil {
+		log.Warnf("Failed to Get API: %v", resErr)
+	}
 
 	// レスポンスを取得
 	defer res.Body.Close()
-	body, _ := ioutil.ReadAll(res.Body)
+	body, redErr := ioutil.ReadAll(res.Body)
+
+	// レスポンスを読み込めなかった場合はログを出力
+	if redErr != nil {
+		log.Warnf("Failed to read response: %v", redErr)
+	}
 
 	var data WeatherData
 
 	// 返却されたJSONをパース
-	if err := json.Unmarshal(body, &data); err != nil {
-		log.Fatal(err)
+	if paErr := json.Unmarshal(body, &data); paErr != nil {
+		log.Warnf("Failed to parse JSON: %v", paErr)
 	}
 
 	// 取得したものを出力（一部）
